@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import KnightIcon from './icons/KnightIcon.vue'
+import QueenIcon from './icons/QueenIcon.vue'
 
 type Player = 'X' | 'O'
 type Cell = Player | null
@@ -34,18 +36,45 @@ function onClick(index: number) {
       :key="idx"
       class="cell"
       role="gridcell"
-      :aria-label="`Cell ${idx+1}`"
+      :aria-label="`Cell ${idx+1}${val ? (val === 'X' ? ': X move (Knight)' : ': O move (Queen)') : ''}`"
       :data-player="val || ''"
       :data-turn="current"
       :class="{ disabled, win: isWinning(idx), filled: !!val }"
       @click="onClick(idx)"
     >
       <transition name="pop">
-        <span v-if="val" class="mark" :class="val">{{ val }}</span>
+        <span v-if="val" class="mark" :class="val" :aria-hidden="true">
+          <KnightIcon
+            v-if="val === 'X'"
+            class="icon"
+            :size="iconSize"
+            title="X move (Knight)"
+            aria-label="X move (Knight)"
+          />
+          <QueenIcon
+            v-else
+            class="icon"
+            :size="iconSize"
+            title="O move (Queen)"
+            aria-label="O move (Queen)"
+          />
+        </span>
       </transition>
     </div>
   </div>
 </template>
+
+<script lang="ts">
+export default {
+  computed: {
+    iconSize(): number {
+      // Match prior glyph sizing via clamp: choose a base size responsive to container
+      // The container scales with viewport; a static number works with current layout.
+      return 44
+    },
+  },
+}
+</script>
 
 <style scoped>
 .board {
@@ -97,9 +126,9 @@ function onClick(index: number) {
 }
 
 .mark {
-  font-weight: 800;
-  font-size: clamp(2.2rem, 10vw, 3.2rem);
-  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
 }
 
@@ -111,6 +140,12 @@ function onClick(index: number) {
 .mark.O {
   color: var(--color-secondary);
   text-shadow: 0 2px 6px rgba(245,158,11,0.25);
+}
+
+.icon {
+  /* ensure responsiveness similar to previous clamp by limiting max width */
+  width: clamp(32px, 10vw, 52px);
+  height: auto;
 }
 
 .pop-enter-active, .pop-leave-active {

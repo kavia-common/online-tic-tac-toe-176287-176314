@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import KnightIcon from './icons/KnightIcon.vue'
+import QueenIcon from './icons/QueenIcon.vue'
+
 type Player = 'X' | 'O'
 
-defineProps<{
+const props = defineProps<{
   text: string
   winner: Player | null
   isDraw: boolean
@@ -9,6 +13,16 @@ defineProps<{
   thinking?: boolean
   winningLine: number[] | null
 }>()
+
+const iconLabel = computed(() =>
+  props.winner
+    ? props.winner === 'X'
+      ? 'X move (Knight)'
+      : 'O move (Queen)'
+    : props.current === 'X'
+      ? 'X move (Knight)'
+      : 'O move (Queen)',
+)
 </script>
 
 <template>
@@ -18,7 +32,25 @@ defineProps<{
         <span v-if="winner" class="dot win"></span>
         <span v-else-if="isDraw" class="dot draw"></span>
         <span v-else class="dot turn"></span>
-        <strong>{{ text }}</strong>
+
+        <!-- Icon representing current turn or winner -->
+        <span class="who" aria-hidden="true" :class="winner ? (winner === 'X' ? 'X' : 'O') : (current === 'X' ? 'X' : 'O')">
+          <KnightIcon
+            v-if="(winner ?? current) === 'X'"
+            :size="22"
+            class="who-icon"
+            :title="iconLabel"
+            :aria-label="iconLabel"
+          />
+          <QueenIcon
+            v-else
+            :size="22"
+            class="who-icon"
+            :title="iconLabel"
+            :aria-label="iconLabel"
+          />
+        </span>
+        <strong :aria-label="text">{{ text }}</strong>
       </div>
     </div>
     <div class="right">
@@ -73,6 +105,19 @@ defineProps<{
 .dot.turn { background: var(--color-primary); }
 .dot.win { background: var(--color-secondary); }
 .dot.draw { background: var(--color-text); opacity: .4; }
+
+.who {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.who.X { color: var(--color-primary); }
+.who.O { color: var(--color-secondary); }
+.who-icon {
+  display: inline-block;
+  vertical-align: middle;
+  filter: drop-shadow(0 1px 2px rgba(17,24,39,0.12));
+}
 
 .right {
   display: flex;
